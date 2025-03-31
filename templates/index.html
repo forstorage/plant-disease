@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmers' Plant Health Assistant</title>
+    <style>
+        :root {
+            --primary-green: #2A6B34;
+            --secondary-green: #5A9E63;
+            --alert-red: #C7423F;
+            --warning-yellow: #FFD700;
+            --soil-brown: #8D6E63;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(to bottom right, #f0f8f0, #e0f0e0);
+            line-height: 1.6;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            color: var(--primary-green);
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .upload-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8fff8;
+            border: 2px dashed var(--secondary-green);
+            border-radius: 12px;
+        }
+
+        .upload-instructions {
+            color: var(--soil-brown);
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+
+        input[type="file"] {
+            margin: 20px auto;
+            padding: 10px;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            display: block;
+            width: 80%;
+            background: white;
+        }
+
+        button {
+            background: var(--primary-green);
+            background: linear-gradient(to bottom, var(--primary-green), var(--secondary-green));
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .loading {
+            display: none;
+            color: var(--primary-green);
+            text-align: center;
+            margin: 30px 0;
+            font-size: 1.2em;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary-green);
+        }
+
+        .plant-card, .disease-card, .treatment-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+            border-left: 4px solid;
+        }
+
+        .plant-card {
+            border-color: var(--primary-green);
+        }
+
+        .disease-card {
+            border-color: var(--alert-red);
+        }
+
+        .treatment-card {
+            border-color: var(--warning-yellow);
+            background: #fffff0;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .error {
+            color: var(--alert-red);
+            background: #ffeaea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--alert-red);
+        }
+
+        .probability {
+            color: var(--soil-brown);
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+
+        .treatment-list {
+            padding-left: 20px;
+            list-style-type: none;
+        }
+
+        .treatment-list li {
+            margin: 10px 0;
+            padding-left: 1.5em;
+            text-indent: -1.5em;
+        }
+
+        .treatment-list li:before {
+            content: "🌱 ";
+        }
+
+        .farmer-tips {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 4px solid var(--secondary-green);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            input[type="file"] {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 Farmers' Plant Health Assistant</h1>
+        
+        <div class="upload-section">
+            <p class="upload-instructions">📸 Take a clear photo of plant leaves/stems and upload here</p>
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="analyzePlant()">
+                📷 Analyze Plant Health
+            </button>
+            <div class="loading" id="loading">🔍 Analyzing... (15-30 seconds)</div>
+        </div>
+
+        <div class="farmer-tips">
+            <h3>📌 Farmer's Guide:</h3>
+            <ul>
+                <li>Take photos in natural daylight</li>
+                <li>Focus on affected leaves and stems</li>
+                <li>Include both healthy and diseased parts</li>
+                <li>Keep fingers clear of the shot</li>
+            </ul>
+        </div>
+
+        <div id="imagePreview"></div>
+
+        <div id="results">
+            <div class="result-section" id="plantInfo"></div>
+            <div class="result-section" id="diseaseInfo"></div>
+        </div>
+    </div>
+
+    <script>
+    // Updated analyzePlant function with farmer-friendly enhancements
+    function analyzePlant() {
+        // Clear previous results
+        document.getElementById('imagePreview').innerHTML = '';
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<div class="loading">🔍 Analyzing... Please wait while we examine your crop</div>';
+    
+        const file = document.getElementById('imageInput').files[0];
+        if (!file) {
+            showError('Please select a photo first');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+    
+        fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            resultsDiv.innerHTML = '';
+    
+            if (data.error) throw new Error(data.error);
+    
+            // Image preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('imagePreview').innerHTML = `
+                    <h3>Your Crop Analysis:</h3>
+                    <img src="${e.target.result}" alt="Farmers crop preview">
+                `;
+            };
+            reader.readAsDataURL(file);
+    
+            // Plant identification
+            const plant = data.identification?.result?.classification?.suggestions?.[0];
+            if (plant) {
+                resultsDiv.innerHTML += `
+                    <div class="plant-card">
+                        <h3>🌿 Crop Identification</h3>
+                        <p><strong>Plant:</strong> ${plant.name}</p>
+                        <p class="probability">Confidence Level: ${(plant.probability * 100).toFixed(1)}%</p>
+                    </div>
+                `;
+            }
+    
+            // Disease information
+            const disease = data.identification?.result?.disease?.suggestions?.[0];
+            if (disease) {
+                resultsDiv.innerHTML += `
+                    <div class="disease-card">
+                        <h3>⚠️ Detected Crop Issue</h3>
+                        <p><strong>Problem:</strong> ${disease.name}</p>
+                        <p class="probability">Certainty: ${(disease.probability * 100).toFixed(1)}%</p>
+                        ${disease.details?.symptoms ? `
+                            <p><strong>Key Symptoms:</strong> ${disease.details.symptoms}</p>
+                        ` : ''}
+                    </div>
+                `;
+            }
+    
+            // Treatment advice
+            const treatment = data.chatbot?.messages?.find(m => m.type === 'answer')?.content;
+            if (treatment) {
+                resultsDiv.innerHTML += `
+                    <div class="treatment-card">
+                        <h3>🛠️ Recommended Farming Solution</h3>
+                        <div class="treatment-list">${formatTreatment(treatment)}</div>
+                    </div>
+                `;
+            } else if (data.warning) {
+                resultsDiv.innerHTML += `
+                    <div class="warning">
+                        <h3>⚠️ Partial Analysis</h3>
+                        <p>${data.warning}</p>
+                        ${disease ? `<p>Detected issue: ${disease.name}</p>` : ''}
+                    </div>
+                `;
+            }
+    
+        })
+        .catch(error => {
+            showError(`Analysis failed: ${error.message}. Please try again with a clear photo.`);
+        });
+    }
+
+    function formatTreatment(text) {
+        // Convert number lists to proper HTML lists
+        const listItems = text.split(/\d+\./g).filter(item => item.trim());
+        if (listItems.length > 1) {
+            return `<ol>${listItems.map(item => `<li>${item.trim()}</li>`).join('')}</ol>`;
+        }
+        return text.replace(/(\d+\.)/g, '<br>$1')
+                  .replace(/(•)/g, '<br>$1')
+                  .replace(/\. /g, '.<br>');
+    }
+
+    function showError(message) {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <div class="error">
+                ❗ ${message}
+                <br><small>Recommended checks: Good lighting, clear focus, and proper plant parts visible</small>
+            </div>
+        `;
+    }
+    </script>
+</body>
+</html>
